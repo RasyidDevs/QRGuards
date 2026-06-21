@@ -27,8 +27,6 @@ The system extracts both contextual meaning from URLs and manually engineered UR
 
 ## Architecture
 
-> Replace this image with your final architecture diagram
-
 ![QRGuard Methodology](./assets/methodology.png)
 
 ---
