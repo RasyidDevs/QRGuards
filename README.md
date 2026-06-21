@@ -160,7 +160,7 @@ npm install
 Run project:
 
 ```bash
-npm run dev
+npm start
 ```
 
 Open:
