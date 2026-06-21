@@ -1,4 +1,4 @@
-# 🛡️ QRGuard
+#  QRGuard
 
 QRGuard is an AI-powered web application that detects whether a QR Code redirects users to a **phishing website** or a **legitimate destination**.
 
