@@ -128,22 +128,11 @@ export default function ResultScreen({
                 </View>
               </>
             ) : (
-              analysis.reasons.map((reason, index) => {
-                let tagLabel = 'Threat';
-                if (reason.includes('HTTPS')) tagLabel = 'No HTTPS';
-                else if (reason.includes('shortlink')) tagLabel = 'Shortlink';
-                else if (reason.includes('keywords')) tagLabel = 'Suspicious';
-                else if (reason.includes('IP address')) tagLabel = 'IP Address';
-                else if (reason.includes('long')) tagLabel = 'Long URL';
-                else if (reason.includes('not a verifiable')) tagLabel = 'Not URL';
-                return (
-                  <View key={index} style={[styles.tag, styles.tagDanger]}>
-                    <Text style={[styles.tagText, styles.tagTextDanger]}>
-                      {tagLabel}
-                    </Text>
-                  </View>
-                );
-              })
+              <View style={[styles.tag, styles.tagDanger]}>
+                <Text style={[styles.tagText, styles.tagTextDanger]}>
+                  Threat Detected
+                </Text>
+              </View>
             )}
           </View>
 

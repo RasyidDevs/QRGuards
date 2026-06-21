@@ -8,13 +8,8 @@ interface ReasonCardProps {
 }
 
 const REASON_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  'URL does not use HTTPS.': 'lock-open-outline',
-  'URL uses a shortlink or QR redirect service.': 'link-outline',
-  'URL contains suspicious keywords.': 'warning-outline',
-  'QR content is not a verifiable URL.': 'code-slash-outline',
-  'URL uses an IP address instead of a normal domain.': 'globe-outline',
-  'URL is unusually long.': 'resize-outline',
-  'URL uses HTTPS and no suspicious pattern was detected.': 'checkmark-circle-outline',
+  'QR content flagged as potentially dangerous by security analysis.': 'warning-outline',
+  'QR content passed security analysis.': 'checkmark-circle-outline',
 };
 
 export default function ReasonCard({ status, reasons }: ReasonCardProps) {

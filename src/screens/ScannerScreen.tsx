@@ -8,8 +8,10 @@ import {
   Animated,
   Easing,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
-import { CameraView, useCameraPermissions } from 'expo-camera';
+import { CameraView, useCameraPermissions, scanFromURLAsync } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import Header from '../components/Header';
 
@@ -24,11 +26,13 @@ export default function ScannerScreen({ onScanned }: ScannerScreenProps) {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [flashOn, setFlashOn] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [permissionDismissed, setPermissionDismissed] = useState(false);
   const scanLineAnim = useRef(new Animated.Value(0)).current;
   const cornerPulse = useRef(new Animated.Value(0.6)).current;
 
   useEffect(() => {
-    if (!permission?.granted) {
+    if (!permission?.granted && !permissionDismissed) {
       requestPermission();
     }
   }, [permission]);
@@ -82,12 +86,49 @@ export default function ScannerScreen({ onScanned }: ScannerScreenProps) {
     onScanned(data);
   };
 
-  const handleUploadImage = () => {
-    Alert.alert(
-      'Coming Soon',
-      'Upload image feature coming soon.',
-      [{ text: 'OK' }]
-    );
+  const handleUploadImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 1,
+      });
+
+      if (result.canceled || !result.assets || result.assets.length === 0) {
+        return;
+      }
+
+      const imageUri = result.assets[0].uri;
+      setScanning(true);
+
+      try {
+        const barcodes = await scanFromURLAsync(imageUri, ['qr']);
+
+        if (barcodes && barcodes.length > 0) {
+          setScanned(true);
+          onScanned(barcodes[0].data);
+        } else {
+          Alert.alert(
+            'No QR Code Found',
+            'No QR code was detected in the selected image. Please try another image.',
+            [{ text: 'OK' }]
+          );
+        }
+      } catch (scanError) {
+        Alert.alert(
+          'Scan Error',
+          'Failed to scan the image for QR codes. Please try another image.',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      Alert.alert(
+        'Error',
+        'Failed to pick image. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setScanning(false);
+    }
   };
 
   const scanLineTranslateY = scanLineAnim.interpolate({
@@ -100,6 +141,19 @@ export default function ScannerScreen({ onScanned }: ScannerScreenProps) {
     setScanned(false);
   }, []);
 
+  // Loading/scanning overlay
+  if (scanning) {
+    return (
+      <View style={styles.container}>
+        <Header showInfo />
+        <View style={styles.permissionContainer}>
+          <ActivityIndicator size="large" color="#00F0FF" />
+          <Text style={styles.permissionText}>Scanning image for QR code...</Text>
+        </View>
+      </View>
+    );
+  }
+
   if (!permission) {
     return (
       <View style={styles.container}>
@@ -107,15 +161,27 @@ export default function ScannerScreen({ onScanned }: ScannerScreenProps) {
         <View style={styles.permissionContainer}>
           <Ionicons name="camera-outline" size={60} color="#00F0FF" />
           <Text style={styles.permissionText}>Requesting camera permission...</Text>
+          {/* Upload button available even while waiting */}
+          <TouchableOpacity style={styles.uploadFallbackButton} onPress={handleUploadImage}>
+            <Ionicons name="image-outline" size={22} color="#0A0E1A" />
+            <Text style={styles.uploadFallbackText}>Upload QR Image</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
   }
 
-  if (!permission.granted) {
+  if (!permission.granted && !permissionDismissed) {
     return (
       <View style={styles.container}>
         <Header showInfo />
+        {/* X button to dismiss permission screen */}
+        <TouchableOpacity
+          style={styles.dismissButton}
+          onPress={() => setPermissionDismissed(true)}
+        >
+          <Ionicons name="close" size={28} color="#8A8A9A" />
+        </TouchableOpacity>
         <View style={styles.permissionContainer}>
           <Ionicons name="camera-outline" size={60} color="#00F0FF" />
           <Text style={styles.permissionText}>Camera permission is required</Text>
@@ -124,6 +190,43 @@ export default function ScannerScreen({ onScanned }: ScannerScreenProps) {
           </Text>
           <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
             <Text style={styles.permissionButtonText}>Grant Permission</Text>
+          </TouchableOpacity>
+          <Text style={styles.orText}>or</Text>
+          <TouchableOpacity style={styles.uploadFallbackButton} onPress={handleUploadImage}>
+            <Ionicons name="image-outline" size={22} color="#0A0E1A" />
+            <Text style={styles.uploadFallbackText}>Upload QR Image</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  // If user dismissed the permission prompt — show upload-only mode
+  if (!permission.granted && permissionDismissed) {
+    return (
+      <View style={styles.container}>
+        <Header showInfo />
+        <View style={styles.uploadOnlyContainer}>
+          <View style={styles.uploadOnlyIconCircle}>
+            <Ionicons name="image-outline" size={48} color="#00F0FF" />
+          </View>
+          <Text style={styles.uploadOnlyTitle}>Upload QR Code Image</Text>
+          <Text style={styles.uploadOnlySubtext}>
+            Select an image containing a QR code from your gallery
+          </Text>
+          <TouchableOpacity style={styles.uploadOnlyButton} onPress={handleUploadImage}>
+            <Ionicons name="cloud-upload-outline" size={22} color="#0A0E1A" />
+            <Text style={styles.uploadOnlyButtonText}>Choose Image</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.enableCameraButton}
+            onPress={() => {
+              setPermissionDismissed(false);
+              requestPermission();
+            }}
+          >
+            <Ionicons name="camera-outline" size={18} color="#00F0FF" />
+            <Text style={styles.enableCameraText}>Enable Camera Instead</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -241,12 +344,114 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#0A0E1A',
   },
+  orText: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginTop: 20,
+    marginBottom: 4,
+  },
+  dismissButton: {
+    position: 'absolute',
+    top: 60,
+    right: 20,
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  uploadFallbackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 16,
+    backgroundColor: '#00F0FF',
+    paddingHorizontal: 28,
+    paddingVertical: 14,
+    borderRadius: 12,
+  },
+  uploadFallbackText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#0A0E1A',
+  },
+  uploadOnlyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+  },
+  uploadOnlyIconCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(0, 240, 255, 0.1)',
+    borderWidth: 2,
+    borderColor: 'rgba(0, 240, 255, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  uploadOnlyTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  uploadOnlySubtext: {
+    fontSize: 14,
+    color: '#8A8A9A',
+    marginTop: 8,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  uploadOnlyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 28,
+    backgroundColor: '#00F0FF',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 14,
+    shadowColor: '#00F0FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  uploadOnlyButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0A0E1A',
+  },
+  enableCameraButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 240, 255, 0.2)',
+    backgroundColor: 'rgba(0, 240, 255, 0.06)',
+  },
+  enableCameraText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#00F0FF',
+  },
   cameraContainer: {
     flex: 1,
     position: 'relative',
   },
   overlay: {
-    ...StyleSheet.absoluteFill,
+    ...StyleSheet.absoluteFill as object,
     justifyContent: 'center',
   },
   overlayTop: {
