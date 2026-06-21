@@ -187,7 +187,7 @@ http://localhost:3000
 # Team
 
 Hackathon Team — QRGuard
-Muhammad Rasyid Bomantoro Setya Putra - AI Engineer
-I Putu Sukma Widyantara - Fullstack Developer
-Muhammad Trinanda Thoriq - Fullstack Developer
+- Muhammad Rasyid Bomantoro Setya Putra - AI Engineer
+- I Putu Sukma Widyantara - Fullstack Developer
+- Muhammad Trinanda Thoriq - Fullstack Developer
 ---
