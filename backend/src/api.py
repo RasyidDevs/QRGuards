@@ -218,7 +218,7 @@ async def predict(request: PredictRequest):
 
     response = PredictResponse(
         prediction=result["label"],
-        confidence=round(result["probability"], 6),
+        confidence=round(result["confidence"], 6),
     )
 
     logger.info(f"Prediction result: {response.prediction} (confidence={response.confidence})")

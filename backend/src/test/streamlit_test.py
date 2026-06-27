@@ -3,7 +3,7 @@ streamlit_test.py - Streamlit UI untuk unit testing backend QRGuards.
 Mencakup test: Logger, Config, Preprocessor, FeatureExtractor, Model, API.
 Kasus: SUCCESS dan ERROR untuk setiap modul.
 
-Jalankan: streamlit run backend/streamlit_test.py
+Jalankan: streamlit run backend/src/test/streamlit_test.py
 """
 import streamlit as st
 import sys, os, io, logging, math, re, traceback
@@ -12,9 +12,10 @@ from unittest.mock import patch, MagicMock
 from dataclasses import dataclass
 import numpy as np
 
-# Path setup
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Path setup — file ada di backend/src/test/, perlu naik 2 level ke backend/
+_THIS_DIR = os.path.dirname(os.path.abspath(__file__))          # backend/src/test/
+_BACKEND_DIR = os.path.dirname(os.path.dirname(_THIS_DIR))      # backend/
+sys.path.insert(0, _BACKEND_DIR)
 
 # ── Page Config ──
 st.set_page_config(page_title="QRGuards Backend Tester", page_icon="🛡️", layout="wide")
@@ -161,6 +162,7 @@ if analyze_btn or (active_url and active_url != url_input):
                 st.markdown("---")
                 is_phishing = result["is_phishing"]
                 prob = result["probability"]
+                confidence = result["confidence"]
                 label = result["label"]
 
                 if is_phishing:
@@ -183,14 +185,14 @@ if analyze_btn or (active_url and active_url != url_input):
                                background:none; -webkit-background-clip:unset;">{icon} {label}</h1>
                     <p style="color:{text_color}; font-size:1.1rem; margin:8px 0 0 0;">
                         <span style="background:{badge_bg}; padding:4px 16px; border-radius:20px; font-weight:600;">
-                            Confidence: {prob:.4%}
+                            Confidence: {confidence:.4%}
                         </span>
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
 
                 # Detail columns
-                dc1, dc2, dc3 = st.columns(3)
+                dc1, dc2, dc3, dc4 = st.columns(4)
                 with dc1:
                     st.markdown(f"""
                     <div class="metric-card">
@@ -200,10 +202,16 @@ if analyze_btn or (active_url and active_url != url_input):
                 with dc2:
                     st.markdown(f"""
                     <div class="metric-card">
-                        <p style="color:#94a3b8; margin:0; font-size:0.85rem;">Probability Score</p>
-                        <h2 style="color:#60a5fa; margin:4px 0 0;">{prob:.6f}</h2>
+                        <p style="color:#94a3b8; margin:0; font-size:0.85rem;">Confidence</p>
+                        <h2 style="color:#34d399; margin:4px 0 0;">{confidence:.6f}</h2>
                     </div>""", unsafe_allow_html=True)
                 with dc3:
+                    st.markdown(f"""
+                    <div class="metric-card">
+                        <p style="color:#94a3b8; margin:0; font-size:0.85rem;">Raw Sigmoid P(phishing)</p>
+                        <h2 style="color:#60a5fa; margin:4px 0 0;">{prob:.6f}</h2>
+                    </div>""", unsafe_allow_html=True)
+                with dc4:
                     st.markdown(f"""
                     <div class="metric-card">
                         <p style="color:#94a3b8; margin:0; font-size:0.85rem;">Threshold</p>

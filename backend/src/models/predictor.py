@@ -195,7 +195,7 @@ def predict_url(
 
     prob_value = probability.item()
 
-    logger.info(f"  → Raw probability: {prob_value:.6f}")
+    logger.info(f"  → Raw probability (sigmoid): {prob_value:.6f}")
 
     # =========================================================================
     # Step 5: Apply threshold dan tentukan label
@@ -207,17 +207,25 @@ def predict_url(
     label_id = int(is_phishing)
     label = "Phishing" if is_phishing else "Legitimate"
 
+    # Confidence = seberapa yakin model terhadap prediksinya.
+    # Sigmoid output = P(phishing).
+    # Jika Phishing  → confidence = prob_value (langsung)
+    # Jika Legitimate → confidence = 1 - prob_value (kebalikannya)
+    confidence = prob_value if is_phishing else 1.0 - prob_value
+
     logger.info(f"  → Threshold: {threshold}")
     logger.info(f"  → Label: {label} (id={label_id})")
     logger.info(f"  → Is Phishing: {is_phishing}")
+    logger.info(f"  → Confidence: {confidence:.6f}")
 
     result = {
         "url": url,
         "label": label,
         "label_id": label_id,
         "probability": prob_value,
+        "confidence": confidence,
         "is_phishing": is_phishing,
     }
 
-    logger.info(f"Prediksi selesai: {label} (prob={prob_value:.4f})")
+    logger.info(f"Prediksi selesai: {label} (confidence={confidence:.4f}, raw_prob={prob_value:.4f})")
     return result

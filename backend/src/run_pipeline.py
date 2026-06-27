@@ -107,6 +107,7 @@ def run_inference(url: str, config: Config, logger, bert_model, model_components
             "url": result["url"],
             "label": result["label"],
             "label_id": result["label_id"],
+            "confidence": round(result["confidence"], 6),
             "probability": round(result["probability"], 6),
             "is_phishing": result["is_phishing"],
         }
@@ -116,13 +117,14 @@ def run_inference(url: str, config: Config, logger, bert_model, model_components
         print(f"\n{'='*60}")
         print(f"  QRGuards - Hasil Prediksi")
         print(f"{'='*60}")
-        print(f"  URL        : {result['url']}")
-        print(f"  Label      : {result['label']}")
-        print(f"  Probability: {result['probability']:.6f}")
-        print(f"  Is Phishing: {'Ya ⚠️' if result['is_phishing'] else 'Tidak ✅'}")
+        print(f"  URL         : {result['url']}")
+        print(f"  Label       : {result['label']}")
+        print(f"  Confidence  : {result['confidence']:.6f}")
+        print(f"  Raw Prob    : {result['probability']:.6f}")
+        print(f"  Is Phishing : {'Ya ⚠️' if result['is_phishing'] else 'Tidak ✅'}")
         print(f"{'='*60}")
 
-    logger.info(f"Inference selesai: {result['label']} (prob={result['probability']:.4f})")
+    logger.info(f"Inference selesai: {result['label']} (confidence={result['confidence']:.4f})")
 
 
 def main():
