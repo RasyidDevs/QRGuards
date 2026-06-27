@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
-import * as Linking from 'expo-linking';
 import { StatusBar } from 'expo-status-bar';
 import ScannerScreen from './src/screens/ScannerScreen';
 import ResultScreen from './src/screens/ResultScreen';
@@ -15,21 +14,7 @@ export default function App() {
 
   const handleScanned = useCallback((data: string) => {
     const result = analyzeQrContent(data);
-
-    // If SAFE and it's a valid URL, redirect immediately
-    if (result.status === 'SAFE') {
-      try {
-        const url = new URL(data);
-        if (url.protocol === 'http:' || url.protocol === 'https:') {
-          Linking.openURL(data);
-          return;
-        }
-      } catch {
-        // Not a URL, fall through to result screen
-      }
-    }
-
-    // Show result screen for DANGEROUS or non-URL content
+  
     setQrContent(data);
     setAnalysis(result);
     setCurrentScreen('result');

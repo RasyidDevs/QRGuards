@@ -7,7 +7,6 @@ import {
   ScrollView,
   Alert,
   Animated,
-  Dimensions,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import * as Linking from 'expo-linking';
@@ -16,8 +15,6 @@ import Header from '../components/Header';
 import StatusBadge from '../components/StatusBadge';
 import ReasonCard from '../components/ReasonCard';
 import { AnalysisResult } from '../utils/analyzeQrContent';
-
-const { width } = Dimensions.get('window');
 
 interface ResultScreenProps {
   qrContent: string;
@@ -34,6 +31,7 @@ export default function ResultScreen({
   const slideAnim = useRef(new Animated.Value(40)).current;
 
   const isSafe = analysis.status === 'SAFE';
+
   const isUrl = (() => {
     try {
       const url = new URL(qrContent);
@@ -110,6 +108,57 @@ export default function ResultScreen({
             </Text>
           </View>
 
+          {/* Prediction summary */}
+          <View style={styles.predictionBox}>
+            <Text style={styles.predictionTitle}>Prediction Result</Text>
+
+            <View style={styles.classificationRow}>
+              <Text style={styles.predictionLabel}>Classification</Text>
+              <Text
+                style={[
+                  styles.classificationText,
+                  isSafe
+                    ? styles.classificationSafe
+                    : styles.classificationDanger,
+                ]}
+              >
+                {analysis.prediction}
+              </Text>
+            </View>
+
+            <View style={styles.scoreRow}>
+              <Text style={styles.scoreLabel}>Phishing Risk</Text>
+              <Text style={styles.scoreDanger}>
+                {analysis.phishingPercentage.toFixed(1)}%
+              </Text>
+            </View>
+
+            <View style={styles.progressTrack}>
+              <View
+                style={[
+                  styles.progressFillDanger,
+                  { width: `${analysis.phishingPercentage}%` },
+                ]}
+              />
+            </View>
+
+            <View style={styles.scoreRow}>
+              <Text style={styles.scoreLabel}>Legitimate Score</Text>
+              <Text style={styles.scoreSafe}>
+                {analysis.legitimatePercentage.toFixed(1)}%
+              </Text>
+            </View>
+
+            <View style={styles.progressTrack}>
+              <View
+                style={[
+                  styles.progressFillSafe,
+                  { width: `${analysis.legitimatePercentage}%` },
+                ]}
+              />
+            </View>
+          </View>
+
           {/* Reason card */}
           <ReasonCard status={analysis.status} reasons={analysis.reasons} />
 
@@ -118,13 +167,21 @@ export default function ResultScreen({
             {isSafe ? (
               <>
                 <View style={[styles.tag, styles.tagSafe]}>
-                  <Text style={[styles.tagText, styles.tagTextSafe]}>HTTPS Valid</Text>
+                  <Text style={[styles.tagText, styles.tagTextSafe]}>
+                    HTTPS Valid
+                  </Text>
                 </View>
+
                 <View style={[styles.tag, styles.tagSafe]}>
-                  <Text style={[styles.tagText, styles.tagTextSafe]}>No Threats</Text>
+                  <Text style={[styles.tagText, styles.tagTextSafe]}>
+                    No Threats
+                  </Text>
                 </View>
+
                 <View style={[styles.tag, styles.tagSafe]}>
-                  <Text style={[styles.tagText, styles.tagTextSafe]}>Clean</Text>
+                  <Text style={[styles.tagText, styles.tagTextSafe]}>
+                    Clean
+                  </Text>
                 </View>
               </>
             ) : (
@@ -140,11 +197,15 @@ export default function ResultScreen({
           {!isSafe && (
             <View style={styles.inlineActions}>
               {isUrl && (
-                <TouchableOpacity style={styles.inlineBtn} onPress={handleOpenLink}>
+                <TouchableOpacity
+                  style={styles.inlineBtn}
+                  onPress={handleOpenLink}
+                >
                   <Ionicons name="open-outline" size={14} color="#B0B8C8" />
                   <Text style={styles.inlineBtnText}>Open Link</Text>
                 </TouchableOpacity>
               )}
+
               <TouchableOpacity style={styles.inlineBtn} onPress={handleCopyLink}>
                 <Ionicons name="copy-outline" size={14} color="#B0B8C8" />
                 <Text style={styles.inlineBtnText}>Copy Link</Text>
@@ -157,12 +218,19 @@ export default function ResultScreen({
         {isSafe && (
           <View style={styles.actionButtons}>
             {isUrl && (
-              <TouchableOpacity style={styles.openLinkButton} onPress={handleOpenLink}>
+              <TouchableOpacity
+                style={styles.openLinkButton}
+                onPress={handleOpenLink}
+              >
                 <Ionicons name="open-outline" size={20} color="#FFFFFF" />
                 <Text style={styles.openLinkText}>Open Link</Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity style={styles.copyLinkButton} onPress={handleCopyLink}>
+
+            <TouchableOpacity
+              style={styles.copyLinkButton}
+              onPress={handleCopyLink}
+            >
               <Ionicons name="copy-outline" size={20} color="#00F0FF" />
               <Text style={styles.copyLinkText}>Copy Link</Text>
             </TouchableOpacity>
@@ -182,6 +250,7 @@ export default function ResultScreen({
             size={18}
             color={isSafe ? '#00F0FF' : '#FFFFFF'}
           />
+
           <Text
             style={[
               styles.scanAgainText,
@@ -256,6 +325,82 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
     lineHeight: 20,
   },
+
+  predictionBox: {
+    marginTop: 18,
+    marginBottom: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  predictionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 14,
+  },
+  classificationRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  predictionLabel: {
+    fontSize: 13,
+    color: '#8A8A9A',
+    fontWeight: '600',
+  },
+  classificationText: {
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  classificationSafe: {
+    color: '#00E676',
+  },
+  classificationDanger: {
+    color: '#FF6B6B',
+  },
+  scoreRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 6,
+  },
+  scoreLabel: {
+    fontSize: 12,
+    color: '#B0B8C8',
+    fontWeight: '600',
+  },
+  scoreDanger: {
+    fontSize: 12,
+    color: '#FF6B6B',
+    fontWeight: '700',
+  },
+  scoreSafe: {
+    fontSize: 12,
+    color: '#00E676',
+    fontWeight: '700',
+  },
+  progressTrack: {
+    height: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+  progressFillDanger: {
+    height: '100%',
+    backgroundColor: '#FF3B30',
+    borderRadius: 999,
+  },
+  progressFillSafe: {
+    height: '100%',
+    backgroundColor: '#00E676',
+    borderRadius: 999,
+  },
+
   tagContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',

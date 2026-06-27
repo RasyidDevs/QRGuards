@@ -1,32 +1,56 @@
 export interface AnalysisResult {
   status: 'SAFE' | 'DANGEROUS';
+  prediction: 'Legitimate' | 'Phishing';
+  confidence: number;
+  phishingPercentage: number;
+  legitimatePercentage: number;
   reasons: string[];
 }
 
 /**
- * Rule-based QR content analyzer.
+ * Temporary frontend analysis.
  *
- * Decision rule:
- *   - Generate a random number between 0 and 1.
- *   - If the number < 0.5 → DANGEROUS (50% chance).
- *   - If the number >= 0.5 → SAFE (50% chance).
+ * Catatan:
+ * - confidence = probabilitas URL phishing.
+ * - confidence mendekati 1 = semakin phishing.
+ * - confidence mendekati 0 = semakin legitimate.
  *
- * This is the ONLY logic used. No URL parsing, no keyword matching,
- * no shortlink detection, no other heuristics.
- * Every scan is independent — same content can give different results.
+ * Nanti logic ini akan diganti dengan response dari backend /predict.
  */
 export function analyzeQrContent(content: string): AnalysisResult {
-  const isDangerous = Math.random() < 0.5;
+  const confidence = Math.random();
 
-  if (isDangerous) {
+  const isPhishing = confidence >= 0.5;
+  const prediction = isPhishing ? 'Phishing' : 'Legitimate';
+
+  const phishingPercentage = confidence * 100;
+  const legitimatePercentage = (1 - confidence) * 100;
+
+  if (isPhishing) {
     return {
       status: 'DANGEROUS',
-      reasons: ['QR content flagged as potentially dangerous by security analysis.'],
+      prediction,
+      confidence,
+      phishingPercentage,
+      legitimatePercentage,
+      reasons: [
+        `URL classified as phishing with ${phishingPercentage.toFixed(
+          1
+        )}% phishing probability.`,
+      ],
     };
   }
 
   return {
     status: 'SAFE',
-    reasons: ['QR content passed security analysis.'],
+    prediction,
+    confidence,
+    phishingPercentage,
+    legitimatePercentage,
+    reasons: [
+      `URL classified as legitimate with ${legitimatePercentage.toFixed(
+        1
+      )}% legitimate probability.`,
+    ],
   };
 }
