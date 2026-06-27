@@ -1,15 +1,3 @@
-## Base URL
-
-API QRGuards sudah berjalan di Hugging Face Spaces pada URL berikut:
-
-```text
-https://grinderai-qrguards.hf.space
-```
-
-Gunakan URL tersebut sebagai **base URL** untuk semua request dari frontend, mobile app, atau testing API.
-
----
-
 ## API Endpoint
 
 Endpoint yang tersedia pada QRGuards API:
@@ -28,28 +16,6 @@ Catatan:
 Endpoint "/" tidak digunakan.
 Jika membuka https://grinderai-qrguards.hf.space/ secara langsung, response yang muncul adalah {"detail":"Not Found"}.
 Gunakan endpoint /docs, /health, atau /predict.
-```
-
----
-
-## API Documentation
-
-Dokumentasi API dapat dibuka melalui Swagger UI:
-
-```text
-https://grinderai-qrguards.hf.space/docs
-```
-
-Dokumentasi alternatif menggunakan ReDoc:
-
-```text
-https://grinderai-qrguards.hf.space/redoc
-```
-
-Schema OpenAPI tersedia di:
-
-```text
-https://grinderai-qrguards.hf.space/openapi.json
 ```
 
 ---
@@ -122,7 +88,7 @@ Jika request berhasil, API akan mengembalikan hasil prediksi dalam format JSON.
 ```json
 {
   "prediction": "Legitimate",
-  "confidence": 0.031245
+  "confidence": 0.968755
 }
 ```
 
@@ -131,7 +97,15 @@ Jika request berhasil, API akan mengembalikan hasil prediksi dalam format JSON.
 | Field | Type | Description |
 |---|---|---|
 | `prediction` | string | Hasil prediksi model. Nilainya adalah `Legitimate` atau `Phishing` |
-| `confidence` | float | Probabilitas URL termasuk phishing. Nilai semakin mendekati `1.0` berarti semakin tinggi kemungkinan phishing |
+| `confidence` | float | Tingkat keyakinan model terhadap label pada field `prediction` |
+
+Catatan penting:
+
+```text
+confidence bukan selalu probabilitas phishing.
+Jika prediction = "Phishing", confidence menunjukkan keyakinan model bahwa URL adalah phishing.
+Jika prediction = "Legitimate", confidence menunjukkan keyakinan model bahwa URL adalah legitimate.
+```
 
 ---
 
@@ -150,9 +124,13 @@ Jika request berhasil, API akan mengembalikan hasil prediksi dalam format JSON.
 ```json
 {
   "prediction": "Legitimate",
-  "confidence": 0.031245
+  "confidence": 0.968755
 }
 ```
+
+Artinya model memprediksi URL sebagai **Legitimate** dengan confidence sekitar **96.88%**.
+
+---
 
 ### Contoh Request URL Phishing
 
@@ -170,6 +148,8 @@ Jika request berhasil, API akan mengembalikan hasil prediksi dalam format JSON.
   "confidence": 0.984712
 }
 ```
+
+Artinya model memprediksi URL sebagai **Phishing** dengan confidence sekitar **98.47%**.
 
 ---
 
@@ -292,7 +272,7 @@ const result = await predictURL(scannedURL);
 if (result.prediction === "Phishing") {
   alert(`URL ini terdeteksi phishing. Confidence: ${(result.confidence * 100).toFixed(1)}%`);
 } else {
-  alert(`URL ini diprediksi legitimate. Confidence aman: ${((1 - result.confidence) * 100).toFixed(1)}%`);
+  alert(`URL ini diprediksi legitimate. Confidence: ${(result.confidence * 100).toFixed(1)}%`);
 }
 ```
 
@@ -300,19 +280,20 @@ if (result.prediction === "Phishing") {
 
 ## Confidence Interpretation
 
-Nilai `confidence` menunjukkan probabilitas URL adalah **phishing**.
+Nilai `confidence` menunjukkan tingkat keyakinan model terhadap hasil pada field `prediction`.
 
-| Confidence | Interpretasi |
-|---|---|
-| Mendekati `0.0` | Model yakin URL legitimate |
-| Mendekati `1.0` | Model yakin URL phishing |
-| `>= 0.5` | URL diprediksi phishing |
-| `< 0.5` | URL diprediksi legitimate |
+| Prediction | Confidence | Interpretasi |
+|---|---|---|
+| `Phishing` | Mendekati `1.0` | Model sangat yakin URL adalah phishing |
+| `Phishing` | Mendekati `0.5` | Model kurang yakin, tetapi masih memprediksi phishing |
+| `Legitimate` | Mendekati `1.0` | Model sangat yakin URL adalah legitimate |
+| `Legitimate` | Mendekati `0.5` | Model kurang yakin, tetapi masih memprediksi legitimate |
 
-Threshold default:
+Catatan:
 
 ```text
-0.5
+Gunakan field prediction untuk menentukan hasil akhir.
+Gunakan field confidence hanya untuk menampilkan tingkat keyakinan model.
 ```
 
 ---
@@ -347,7 +328,8 @@ Hal yang perlu diperhatikan:
 
 1. Gunakan `/predict` untuk mengirim URL hasil scan QR Code.
 2. Gunakan `/health` untuk mengecek apakah model sudah siap.
-3. Field `confidence` adalah probabilitas phishing.
-4. Jika `confidence >= 0.5`, URL diklasifikasikan sebagai `Phishing`.
-5. Jika `confidence < 0.5`, URL diklasifikasikan sebagai `Legitimate`.
-6. Request pertama bisa lebih lambat karena Hugging Face Space dapat sleep ketika tidak digunakan.
+3. Field `prediction` menentukan hasil akhir: `Legitimate` atau `Phishing`.
+4. Field `confidence` menunjukkan keyakinan model terhadap hasil pada `prediction`.
+5. Jangan memakai `confidence >= 0.5` di frontend untuk menentukan phishing atau legitimate.
+6. Untuk menentukan status URL, gunakan `result.prediction`.
+7. Request pertama bisa lebih lambat karena Hugging Face Space dapat sleep ketika tidak digunakan.
