@@ -1,254 +1,52 @@
----
-title: QRGuards API
-emoji: 🛡️
-colorFrom: red
-colorTo: gray
-sdk: docker
-app_port: 7860
----
-
-# QRGuards Backend API
-
-QRGuards adalah backend API untuk mendeteksi apakah URL hasil pemindaian QR Code termasuk **Phishing** atau **Legitimate**.
-
-API ini menggunakan pendekatan **Hybrid Deep Learning** berbasis:
-
-- **BERT Embedding**
-- **BiLSTM-Attention**
-- **Manual URL Feature Engineering**
-- **FastAPI**
-
-API ini sudah berhasil dideploy di **Hugging Face Spaces** menggunakan **Docker** dan **CPU Basic**.
-
----
-
 ## Base URL
 
-Endpoint utama API QRGuards:
+API QRGuards sudah berjalan di Hugging Face Spaces pada URL berikut:
 
 ```text
 https://grinderai-qrguards.hf.space
 ```
 
+Gunakan URL tersebut sebagai **base URL** untuk semua request dari frontend, mobile app, atau testing API.
+
 ---
 
 ## API Endpoint
 
-| Method | Endpoint | Full URL | Description |
+Endpoint yang tersedia pada QRGuards API:
+
+| Method | Endpoint | Full URL | Fungsi |
 |---|---|---|---|
-| `GET` | `/health` | `https://grinderai-qrguards.hf.space/health` | Mengecek status server dan model |
-| `POST` | `/predict` | `https://grinderai-qrguards.hf.space/predict` | Prediksi URL phishing atau legitimate |
-| `GET` | `/docs` | `https://grinderai-qrguards.hf.space/docs` | Swagger UI documentation |
-| `GET` | `/redoc` | `https://grinderai-qrguards.hf.space/redoc` | ReDoc documentation |
-| `GET` | `/openapi.json` | `https://grinderai-qrguards.hf.space/openapi.json` | OpenAPI schema |
+| `GET` | `/health` | `https://grinderai-qrguards.hf.space/health` | Mengecek apakah API dan model sudah siap digunakan |
+| `POST` | `/predict` | `https://grinderai-qrguards.hf.space/predict` | Mengirim URL dan mendapatkan hasil prediksi phishing atau legitimate |
+| `GET` | `/docs` | `https://grinderai-qrguards.hf.space/docs` | Membuka dokumentasi interaktif Swagger UI |
+| `GET` | `/redoc` | `https://grinderai-qrguards.hf.space/redoc` | Membuka dokumentasi API dalam format ReDoc |
+| `GET` | `/openapi.json` | `https://grinderai-qrguards.hf.space/openapi.json` | Melihat schema OpenAPI dalam format JSON |
 
 Catatan:
 
 ```text
-Endpoint "/" belum digunakan, sehingga jika dibuka akan menampilkan {"detail":"Not Found"}.
-Gunakan /docs, /health, atau /predict.
-```
-
----
-
-## Project Overview
-
-QR Code banyak digunakan untuk pembayaran digital, formulir online, absensi, promosi, dan akses layanan web.
-
-Namun, QR Code dapat menyembunyikan URL berbahaya sehingga pengguna tidak bisa melihat tujuan sebenarnya sebelum membuka link.
-
-QRGuards membantu pengguna melakukan deteksi awal terhadap URL hasil scan QR Code sebelum tautan tersebut dibuka.
-
-Output utama API:
-
-- `Legitimate` → URL diprediksi aman
-- `Phishing` → URL diprediksi berbahaya
-- `confidence` → probabilitas URL termasuk phishing
-
----
-
-## Tech Stack
-
-- Python
-- FastAPI
-- PyTorch
-- Sentence Transformers
-- BERT Embedding
-- BiLSTM-Attention
-- Scikit-learn
-- Docker
-- Hugging Face Spaces
-
----
-
-## Deployment Configuration
-
-API ini berjalan di Hugging Face Spaces dengan konfigurasi:
-
-| Konfigurasi | Value |
-|---|---|
-| Platform | Hugging Face Spaces |
-| SDK | Docker |
-| Template | Blank |
-| Hardware | CPU Basic |
-| App Port | 7860 |
-| ASGI Entry Point | `src.api:app` |
-| Public URL | `https://grinderai-qrguards.hf.space` |
-
----
-
-## Struktur Project
-
-Struktur backend:
-
-```text
-backend/
-├── requirements.txt
-└── src/
-    ├── api.py
-    ├── run_pipeline.py
-    ├── data/
-    │   ├── preprocessor.py
-    │   └── feature_extractor.py
-    ├── models/
-    │   ├── model.py
-    │   ├── embedding.py
-    │   └── predictor.py
-    ├── utils/
-    │   ├── config.py
-    │   └── logger.py
-    └── weights/
-        └── best_bilstm_attention_model.pt
-```
-
-Struktur repository Hugging Face Space:
-
-```text
-Space root/
-├── README.md
-├── Dockerfile
-├── .gitattributes
-└── backend/
-    ├── requirements.txt
-    └── src/
-        ├── api.py
-        ├── run_pipeline.py
-        ├── data/
-        ├── models/
-        ├── utils/
-        └── weights/
-            └── best_bilstm_attention_model.pt
-```
-
----
-
-## Dockerfile
-
-File `Dockerfile` berada di root repository.
-
-```dockerfile
-FROM python:3.11-slim
-
-WORKDIR /app
-
-COPY backend/ .
-
-RUN pip install --no-cache-dir -r requirements.txt
-
-EXPOSE 7860
-
-CMD ["uvicorn", "src.api:app", "--host", "0.0.0.0", "--port", "7860"]
-```
-
----
-
-## Model Checkpoint
-
-Model checkpoint disimpan pada path:
-
-```text
-backend/src/weights/best_bilstm_attention_model.pt
-```
-
-File model disimpan menggunakan **Git LFS** karena ukuran file lebih dari 10 MB.
-
-File `.gitattributes`:
-
-```gitattributes
-*.pt filter=lfs diff=lfs merge=lfs -text
-```
-
----
-
-## Requirements
-
-File `requirements.txt` berada di dalam folder `backend/`.
-
-Contoh isi dependencies:
-
-```txt
-torch
-sentence-transformers
-numpy
-scikit-learn
-tldextract
-fastapi
-uvicorn
-pydantic
-python-multipart
-```
-
----
-
-## Local Development
-
-### 1. Masuk ke folder backend
-
-```bash
-cd backend
-```
-
-### 2. Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Jalankan server lokal
-
-```bash
-uvicorn src.api:app --host 0.0.0.0 --port 8000 --reload
-```
-
-Server lokal berjalan di:
-
-```text
-http://localhost:8000
-```
-
-Swagger UI lokal:
-
-```text
-http://localhost:8000/docs
+Endpoint "/" tidak digunakan.
+Jika membuka https://grinderai-qrguards.hf.space/ secara langsung, response yang muncul adalah {"detail":"Not Found"}.
+Gunakan endpoint /docs, /health, atau /predict.
 ```
 
 ---
 
 ## API Documentation
 
-Swagger UI:
+Dokumentasi API dapat dibuka melalui Swagger UI:
 
 ```text
 https://grinderai-qrguards.hf.space/docs
 ```
 
-ReDoc:
+Dokumentasi alternatif menggunakan ReDoc:
 
 ```text
 https://grinderai-qrguards.hf.space/redoc
 ```
 
-OpenAPI JSON:
+Schema OpenAPI tersedia di:
 
 ```text
 https://grinderai-qrguards.hf.space/openapi.json
@@ -258,7 +56,7 @@ https://grinderai-qrguards.hf.space/openapi.json
 
 ## GET `/health`
 
-Health check untuk mengecek status server dan model.
+Endpoint `/health` digunakan untuk mengecek apakah server dan model sudah berjalan dengan benar.
 
 ### Request
 
@@ -266,7 +64,7 @@ Health check untuk mengecek status server dan model.
 GET https://grinderai-qrguards.hf.space/health
 ```
 
-### Response
+### Response Berhasil
 
 ```json
 {
@@ -276,19 +74,21 @@ GET https://grinderai-qrguards.hf.space/health
 }
 ```
 
-### Field Description
+### Penjelasan Response
 
 | Field | Type | Description |
 |---|---|---|
-| `status` | string | Status API |
+| `status` | string | Status API. Jika bernilai `healthy`, API berjalan normal |
 | `model_loaded` | boolean | Menunjukkan apakah model berhasil dimuat |
-| `device` | string | Device yang digunakan oleh model |
+| `device` | string | Device yang digunakan untuk inference, pada deployment ini menggunakan `cpu` |
+
+Endpoint ini sebaiknya dipanggil sebelum frontend menggunakan `/predict`, terutama saat Space baru aktif atau baru bangun dari sleep mode.
 
 ---
 
 ## POST `/predict`
 
-Endpoint utama untuk memprediksi apakah URL termasuk phishing atau legitimate.
+Endpoint `/predict` digunakan untuk mengirim URL hasil scan QR Code dan mendapatkan hasil prediksi apakah URL tersebut **Phishing** atau **Legitimate**.
 
 ### Request
 
@@ -309,11 +109,13 @@ Content-Type: application/json
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `url` | string | Yes | URL hasil scan QR Code yang akan diprediksi |
+| `url` | string | Yes | URL yang akan dianalisis oleh model QRGuards |
 
 ---
 
-## Response
+## Response `/predict`
+
+Jika request berhasil, API akan mengembalikan hasil prediksi dalam format JSON.
 
 ### 200 OK
 
@@ -328,14 +130,22 @@ Content-Type: application/json
 
 | Field | Type | Description |
 |---|---|---|
-| `prediction` | string | Hasil prediksi: `Legitimate` atau `Phishing` |
-| `confidence` | float | Probabilitas URL termasuk phishing |
+| `prediction` | string | Hasil prediksi model. Nilainya adalah `Legitimate` atau `Phishing` |
+| `confidence` | float | Probabilitas URL termasuk phishing. Nilai semakin mendekati `1.0` berarti semakin tinggi kemungkinan phishing |
 
 ---
 
-## Example Response
+## Example `/predict`
 
-### Legitimate URL
+### Contoh Request URL Legitimate
+
+```json
+{
+  "url": "https://google.com"
+}
+```
+
+### Contoh Response URL Legitimate
 
 ```json
 {
@@ -344,7 +154,15 @@ Content-Type: application/json
 }
 ```
 
-### Phishing URL
+### Contoh Request URL Phishing
+
+```json
+{
+  "url": "https://example.com/login"
+}
+```
+
+### Contoh Response URL Phishing
 
 ```json
 {
@@ -359,7 +177,7 @@ Content-Type: application/json
 
 ### 400 Bad Request
 
-URL tidak valid atau tidak bisa diproses.
+Terjadi jika URL tidak valid atau tidak dapat diproses.
 
 ```json
 {
@@ -369,7 +187,7 @@ URL tidak valid atau tidak bisa diproses.
 
 ### 422 Validation Error
 
-Body request tidak sesuai schema.
+Terjadi jika body request tidak sesuai schema, misalnya field `url` kosong atau tidak dikirim.
 
 ```json
 {
@@ -385,7 +203,7 @@ Body request tidak sesuai schema.
 
 ### 503 Service Unavailable
 
-Model belum siap atau gagal dimuat.
+Terjadi jika model belum siap atau gagal dimuat.
 
 ```json
 {
@@ -420,9 +238,9 @@ async function predictURL(url) {
   const response = await fetch("https://grinderai-qrguards.hf.space/predict", {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "application/json"
     },
-    body: JSON.stringify({ url }),
+    body: JSON.stringify({ url })
   });
 
   if (!response.ok) {
@@ -455,9 +273,9 @@ async function predictURL(url: string): Promise<PredictResponse> {
   const response = await fetch(`${API_URL}/predict`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "application/json"
     },
-    body: JSON.stringify({ url }),
+    body: JSON.stringify({ url })
   });
 
   if (!response.ok) {
@@ -488,8 +306,8 @@ Nilai `confidence` menunjukkan probabilitas URL adalah **phishing**.
 |---|---|
 | Mendekati `0.0` | Model yakin URL legitimate |
 | Mendekati `1.0` | Model yakin URL phishing |
-| `>= 0.5` | Diprediksi phishing |
-| `< 0.5` | Diprediksi legitimate |
+| `>= 0.5` | URL diprediksi phishing |
+| `< 0.5` | URL diprediksi legitimate |
 
 Threshold default:
 
@@ -501,78 +319,35 @@ Threshold default:
 
 ## Notes for Frontend
 
-1. Gunakan base URL berikut:
+Gunakan base URL berikut pada frontend:
 
 ```text
 https://grinderai-qrguards.hf.space
 ```
 
-2. Gunakan endpoint berikut untuk prediksi:
+Endpoint utama untuk prediksi:
 
 ```text
 https://grinderai-qrguards.hf.space/predict
 ```
 
-3. Gunakan endpoint berikut untuk cek status API:
+Endpoint untuk mengecek status API:
 
 ```text
 https://grinderai-qrguards.hf.space/health
 ```
 
-4. `confidence` adalah probabilitas phishing.
-5. Jika frontend berbeda domain, pastikan CORS sudah aktif di FastAPI.
-6. Pada Hugging Face free CPU, request pertama bisa lebih lambat karena model perlu warm up.
-7. Space dapat sleep ketika tidak digunakan.
+Contoh konfigurasi frontend:
 
----
-
-## Important Deployment Notes
-
-Jangan upload file yang tidak dibutuhkan oleh API, seperti:
-
-```text
-model_research/
-reference_paper/
-venv/
-__pycache__/
-.env
-node_modules/
-dataset besar
-notebook eksperimen
+```typescript
+const API_URL = "https://grinderai-qrguards.hf.space";
 ```
 
-File yang wajib untuk deployment:
+Hal yang perlu diperhatikan:
 
-```text
-README.md
-Dockerfile
-.gitattributes
-backend/requirements.txt
-backend/src/api.py
-backend/src/models/
-backend/src/data/
-backend/src/utils/
-backend/src/weights/best_bilstm_attention_model.pt
-```
-
----
-
-## Current Deployment Status
-
-API QRGuards sudah berhasil berjalan di Hugging Face Spaces.
-
-Status terakhir:
-
-```json
-{
-  "status": "healthy",
-  "model_loaded": true,
-  "device": "cpu"
-}
-```
-
-Final API URL:
-
-```text
-https://grinderai-qrguards.hf.space
-```
+1. Gunakan `/predict` untuk mengirim URL hasil scan QR Code.
+2. Gunakan `/health` untuk mengecek apakah model sudah siap.
+3. Field `confidence` adalah probabilitas phishing.
+4. Jika `confidence >= 0.5`, URL diklasifikasikan sebagai `Phishing`.
+5. Jika `confidence < 0.5`, URL diklasifikasikan sebagai `Legitimate`.
+6. Request pertama bisa lebih lambat karena Hugging Face Space dapat sleep ketika tidak digunakan.
