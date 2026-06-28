@@ -1,11 +1,18 @@
 import { useEffect, useState } from "react";
 
+type TypewriterProps = {
+  text: string;
+  speed?: number;
+  deleteSpeed?: number;
+  pause?: number;
+};
+
 export default function Typewriter({
   text,
   speed = 70,
   deleteSpeed = 35,
   pause = 2000,
-}) {
+}: TypewriterProps) {
   const [displayed, setDisplayed] = useState("");
   const [deleting, setDeleting] = useState(false);
 
@@ -26,7 +33,7 @@ export default function Typewriter({
           }
         }
       },
-      deleting ? deleteSpeed : displayed.length === text.length ? pause : speed,
+      deleting ? deleteSpeed : displayed.length === text.length ? pause : speed
     );
 
     return () => clearTimeout(timeout);
@@ -35,7 +42,6 @@ export default function Typewriter({
   return (
     <span>
       {displayed}
-
       <span className="text-accent animate-pulse">|</span>
     </span>
   );
