@@ -18,6 +18,9 @@ from typing import Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+from urllib.parse import urlparse
+from urllib.request import Request, urlopen
+from urllib.error import URLError, HTTPError
 
 # Tambahkan parent directory ke path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -144,6 +147,48 @@ class ErrorResponse(BaseModel):
 # =========================================================================
 # Endpoints
 # =========================================================================
+@app.get("/resolve-url", summary="Resolve final URL", tags=["URL"])
+async def resolve_url(url: str):
+    """
+    Mengambil URL tujuan akhir dari link QR yang redirect.
+    Contoh: q.me-qr.com/... -> youtube.com/...
+    """
+    parsed = urlparse(url)
+
+    if parsed.scheme not in ["http", "https"] or not parsed.netloc:
+        raise HTTPException(
+            status_code=400,
+            detail="URL tidak valid. Pastikan URL diawali http:// atau https://",
+        )
+
+    try:
+        request = Request(
+            url,
+            headers={
+                "User-Agent": "Mozilla/5.0 QRGuards/1.0"
+            },
+        )
+
+        with urlopen(request, timeout=10) as response:
+            final_url = response.geturl()
+
+        return {
+            "success": True,
+            "originalUrl": url,
+            "finalUrl": final_url,
+        }
+
+    except (HTTPError, URLError, TimeoutError) as error:
+        logger.error(f"Gagal resolve URL: {url} | Error: {error}")
+
+        return {
+            "success": False,
+            "originalUrl": url,
+            "finalUrl": url,
+            "error": "Gagal mengambil URL tujuan akhir.",
+        }
+
+
 @app.post(
     "/predict",
     response_model=PredictResponse,

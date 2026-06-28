@@ -91,13 +91,31 @@ export default function App() {
     }
   };
 
+  const resolveFinalUrl = async (url: string) => {
+    try {
+      const response = await fetch(
+        `${API_URL}/resolve-url?url=${encodeURIComponent(url)}`
+      );
+  
+      const data = await response.json();
+  
+      return data.finalUrl || url;
+    } catch (error) {
+      console.error("Gagal mengambil final URL:", error);
+      return url;
+    }
+  };
+  
   const handleScannedQr = async (decoded: string) => {
     setError("");
     setScannedQrUrl(decoded);
-    setFinalUrl(decoded);
     setScannerActive(false);
     hasScannedRef.current = false;
-    await predictUrl(decoded);
+  
+    const resolvedUrl = await resolveFinalUrl(decoded);
+  
+    setFinalUrl(resolvedUrl);
+    await predictUrl(resolvedUrl);
   };
 
   const handleQrImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
