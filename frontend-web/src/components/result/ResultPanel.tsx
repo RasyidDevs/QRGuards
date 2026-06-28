@@ -11,12 +11,11 @@ export default function ResultPanel({
   scannedUrl,
   finalUrl,
 }: any) {
-  if (loading) return <div>Loading...</div>; // Ganti dengan LoadingState.tsx jika ada
-  if (!result) return <div>Belum ada hasil</div>; // Ganti dengan EmptyState.tsx jika ada
+  if (loading) return <div>Loading...</div>;
+  if (!result) return <div>Belum ada hasil</div>;
 
   const isPhishing = result.prediction === "Phishing";
 
-  // Karena API memberikan confidence berdasarkan LABEL-nya:
   const phishingRisk = isPhishing
     ? result.confidence * 100
     : (1 - result.confidence) * 100;
@@ -24,7 +23,6 @@ export default function ResultPanel({
     ? (1 - result.confidence) * 100
     : result.confidence * 100;
 
-  // Skor utama yang ditampilkan di Ring
   const mainScore = isPhishing ? phishingRisk : safetyScore;
 
   return (

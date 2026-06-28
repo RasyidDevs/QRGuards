@@ -11,6 +11,7 @@ import {
   ScanLine,
   ShieldCheck,
   ChevronRight,
+  Quote,
 } from "lucide-react";
 
 import Header from "./components/layout/Header";
@@ -20,7 +21,10 @@ import ScannerCard from "./components/scanner/ScannerCard";
 import ResultPanel from "./components/result/ResultPanel";
 import { Player } from "@lottiefiles/react-lottie-player";
 import Typewriter from "./components/ui/Typewriter";
-import qrAnimation from "../../assets/qr-security.json"; // Sesuaikan path assets Anda
+import qrAnimation from "../../assets/qr-security.json";
+import a1 from "./assets/a1.jpg";
+import a2 from "./assets/a2.jpg";
+import a3 from "./assets/a3.jpg";
 
 interface PredictResponse {
   prediction: "Legitimate" | "Phishing";
@@ -41,15 +45,11 @@ export default function App() {
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
   const hasScannedRef = useRef(false);
 
-  // 1. REF UNTUK ANCHOR SCROLL
   const scannerSectionRef = useRef<HTMLDivElement>(null);
-
-  // 2. FUNGSI SCROLL KE SCANNER
   const scrollToScanner = () => {
     scannerSectionRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // 3. LOGIKA REDIRECT OTOMATIS (3 Detik jika Aman)
   useEffect(() => {
     if (result && result.prediction === "Legitimate" && !loading && finalUrl) {
       const timer = setTimeout(() => {
@@ -94,26 +94,26 @@ export default function App() {
   const resolveFinalUrl = async (url: string) => {
     try {
       const response = await fetch(
-        `${API_URL}/resolve-url?url=${encodeURIComponent(url)}`
+        `${API_URL}/resolve-url?url=${encodeURIComponent(url)}`,
       );
-  
+
       const data = await response.json();
-  
+
       return data.finalUrl || url;
     } catch (error) {
       console.error("Gagal mengambil final URL:", error);
       return url;
     }
   };
-  
+
   const handleScannedQr = async (decoded: string) => {
     setError("");
     setScannedQrUrl(decoded);
     setScannerActive(false);
     hasScannedRef.current = false;
-  
+
     const resolvedUrl = await resolveFinalUrl(decoded);
-  
+
     setFinalUrl(resolvedUrl);
     await predictUrl(resolvedUrl);
   };
@@ -196,12 +196,38 @@ export default function App() {
     { title: "Untuk Korporasi", icon: Briefcase },
   ];
 
+  const testimonials = [
+    {
+      company: "PT. SiberIDN",
+      quote:
+        "QRGuard membantu tim kami menghindari berbagai upaya phishing yang tersembunyi di balik kode QR.",
+      name: "Danang Suhendang",
+      role: "Analyst Keamanan",
+      avatar: a1,
+    },
+    {
+      company: "Bumi Digital",
+      quote:
+        "Mudah digunakan dan sangat cepat. Verifikasi QR kini menjadi bagian dari alur kerja harian kami di kantor.",
+      name: "Tutik Setyawati",
+      role: "Manajer Operasional",
+      avatar: a3,
+    },
+    {
+      company: "PT. Kreasi Alam",
+      quote:
+        "Kemampuan untuk memeriksa tujuan QR sebelum membuka tautan membuat kami merasa aman",
+      name: "Michael Andara",
+      role: "Lead Developer",
+      avatar: a2,
+    },
+  ];
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-primary/20">
       <Header />
 
       <main className="flex-1">
-        {/* HERO SECTION */}
         <section className="relative w-full min-h-[90vh] flex items-center pt-10 pb-20 overflow-hidden bg-background">
           <Container>
             <div className="grid lg:grid-cols-2 gap-12 lg:gap-22 items-center relative z-10">
@@ -236,7 +262,15 @@ export default function App() {
                     Mulai Scanning
                   </button>
 
-                  <button className="w-full sm:w-auto group border-2 border-slate-200 hover:bg-slate-50 text-slate-600 px-8 py-4 rounded-2xl text-lg font-bold transition-all active:scale-95 flex items-center justify-center gap-2">
+                  <button
+                    onClick={() =>
+                      window.open(
+                        "https://github.com/RasyidDevs/QRGuards",
+                        "_blank",
+                        "noopener,noreferrer",
+                      )
+                    }
+                    className="w-full sm:w-auto group border-2 border-slate-200 hover:bg-slate-50 text-slate-600 px-8 py-4 rounded-2xl text-lg font-bold transition-all active:scale-95 flex items-center justify-center gap-2">
                     Pelajari AI Kami
                     <ChevronRight
                       size={20}
@@ -260,7 +294,6 @@ export default function App() {
           </Container>
         </section>
 
-        {/* SCANNER SECTION DENGAN REF */}
         <section
           ref={scannerSectionRef}
           className="py-20 bg-white border-t border-slate-100">
@@ -308,7 +341,6 @@ export default function App() {
           </Container>
         </section>
 
-        {/* FEATURES SECTION */}
         <section className="relative w-full bg-slate-50 py-24 overflow-hidden">
           <Container>
             <div className="text-center mb-20 relative z-10">
@@ -349,6 +381,68 @@ export default function App() {
               ))}
             </div>
           </Container>
+        </section>
+
+        <section className="py-32 bg-background">
+          <div className="max-w-7xl mx-auto px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">
+                Dipercaya Sebelum{" "}
+                <span className="text-primary">Setiap Pemindaian. </span>
+              </h2>
+              <p className="text-slate-500 max-w-2xl mx-auto text-lg leading-relaxed">
+                Tim dan individu mengandalkan QRGuard untuk memverifikasi tujuan
+                QR dan menjaga keamanan saat online.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {testimonials.map((item, index) => (
+                <div
+                  key={index}
+                  className="group bg-surface rounded-[32px] p-8 border border-slate-200 hover:border-accent transition-all duration-300 hover:-translate-y-2 shadow-sm hover:shadow-xl relative overflow-hidden">
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-primary/5 to-accent/10" />
+
+                  <div className="relative z-10">
+                    <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-8">
+                      <Quote
+                        size={24}
+                        fill="currentColor"
+                        className="opacity-80"
+                      />
+                    </div>
+
+                    <h4 className="text-accent font-bold tracking-wider uppercase text-xs mb-4">
+                      {item.company}
+                    </h4>
+
+                    <p className="text-slate-700 text-xl leading-relaxed mb-10">
+                      “{item.quote}”
+                    </p>
+
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-full overflow-hidden border-2 border-primary/20">
+                        <img
+                          src={item.avatar}
+                          alt={item.name}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+
+                      <div>
+                        <h5 className="text-slate-900 font-bold">
+                          {item.name}
+                        </h5>
+                        <p className="text-slate-500 text-sm font-medium">
+                          {item.role}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
       </main>
 
