@@ -63,6 +63,57 @@ Extract URL
 ```
 
 ---
+## Dataset Source
+
+The dataset used in QRGuard is divided into two parts: the training dataset and the external testing dataset.
+
+### Training Dataset
+
+The model was trained using the **Phishing Site URLs** dataset from Kaggle.
+
+Dataset source:
+
+```text
+https://www.kaggle.com/datasets/taruntiwarihp/phishing-site-urls
+```
+
+This dataset contains URL samples labeled as either:
+
+```text
+Legitimate
+Phishing
+```
+
+In this project, the dataset is used to train the phishing URL classification model and to build the internal validation set.
+
+---
+
+### Validation Dataset
+
+The validation dataset was taken from the same source as the training dataset using a train-validation split.
+
+This validation set is used to evaluate model performance on data with a similar distribution to the training data.
+
+---
+
+### External Test Dataset
+
+To evaluate the model on unseen URL distributions, QRGuard also uses external phishing URL datasets that are not included in the training process.
+
+The external test data is used to measure how well the model generalizes to new URL patterns.
+
+External dataset sources:
+
+```text
+https://www.kaggle.com/datasets/sid321axn/malicious-urls-dataset
+https://doi.org/10.17632/VFSZBJ9B36.1
+https://www.kaggle.com/datasets/samahsadiq/benign-and-malicious-urls
+```
+
+These datasets contain benign, malicious, and phishing URLs from different distributions.
+
+---
+
 
 ## Model Components
 
