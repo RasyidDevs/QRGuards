@@ -15,7 +15,7 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center gap-10 mb-16">
           <button className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full border border-white/10 bg-surface text-muted font-medium transition-transform hover:text-primary hover:scale-105 active:scale-95">
             <Globe size={20} />
-            English
+            Indonesia
           </button>
 
           <div className="flex gap-3">
