@@ -411,11 +411,11 @@ export default function App() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
+            <div className="relative z-10 flex gap-5 overflow-x-auto snap-x snap-mandatory pb-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible">
               {features.map((item, index) => (
                 <div
                   key={index}
-                  className="group relative overflow-hidden bg-white hover:bg-slate-50 p-8 rounded-[2rem] border border-slate-200 hover:border-primary/30 transition-all duration-500 cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-primary/5">
+                  className="group relative overflow-hidden min-w-[85%] sm:min-w-[70%] md:min-w-0 bg-white hover:bg-slate-50 p-8 rounded-[2rem] border border-slate-200 hover:border-primary/30 transition-all duration-500 shadow-sm hover:shadow-2xl hover:shadow-primary/5 snap-center">
                   <div className="absolute -top-12 -left-12 w-32 h-32 rounded-full bg-primary/5 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                   <div className="relative z-10 flex flex-col gap-6">
                     <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-white transition-all duration-500">
