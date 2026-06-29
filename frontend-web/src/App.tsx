@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, type ChangeEvent } from "react";
-import { Html5Qrcode, Html5QrcodeScanner } from "html5-qrcode";
+import { Html5Qrcode, Html5QrcodeScannerState } from "html5-qrcode";
 import {
   Shield,
   GraduationCap,
@@ -42,7 +42,7 @@ export default function App() {
   const [scannerActive, setScannerActive] = useState(true);
   const [error, setError] = useState("");
 
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
   const hasScannedRef = useRef(false);
 
   const scannerSectionRef = useRef<HTMLDivElement>(null);
@@ -131,7 +131,9 @@ export default function App() {
     setError("");
 
     try {
-      if (scannerRef.current) await scannerRef.current.clear().catch(() => {});
+      if (scannerRef.current) {
+        scannerRef.current.clear();
+      }
       setScannerActive(false);
 
       const html5QrCode = new Html5Qrcode("qr-file-reader");
@@ -151,6 +153,7 @@ export default function App() {
       e.target.value = "";
     }
   };
+
   const handleReset = () => {
     setScannedQrUrl("");
     setFinalUrl("");
@@ -164,25 +167,51 @@ export default function App() {
   useEffect(() => {
     if (!scannerActive || result || loading || error) return;
 
-    const scanner = new Html5QrcodeScanner(
-      "qr-reader",
-      { fps: 10, qrbox: 250 },
-      false,
-    );
+    const scanner = new Html5Qrcode("qr-reader");
     scannerRef.current = scanner;
-    scanner.render(
-      async (decoded) => {
-        if (hasScannedRef.current) return;
-        hasScannedRef.current = true;
-        await scanner.clear().catch(() => {});
-        handleScannedQr(decoded);
-      },
-      () => {},
-    );
-    return () => {
-      scanner.clear().catch(() => {});
+
+    let isMounted = true;
+
+    const startScanner = async () => {
+      try {
+        await scanner.start(
+          { facingMode: "environment" },
+          {
+            fps: 10,
+            qrbox: 220,
+          },
+          async (decodedText) => {
+            if (hasScannedRef.current) return;
+
+            hasScannedRef.current = true;
+
+            await scanner.stop();
+
+            handleScannedQr(decodedText);
+          },
+          (errorMessage) => {
+            // boleh dikosongkan
+            // console.log(errorMessage);
+          },
+        );
+      } catch (err) {
+        console.error(err);
+        if (isMounted) {
+          setError("Tidak dapat mengakses kamera.");
+        }
+      }
     };
-  }, [scannerActive, result, loading, error]);
+
+    startScanner();
+
+    return () => {
+      isMounted = false;
+
+      if (scanner.getState() === Html5QrcodeScannerState.SCANNING) {
+        scanner.stop().catch(() => {});
+      }
+    };
+  }, []);
 
   const isShowResult =
     result || loading || (error && (scannedQrUrl || manualUrl));
@@ -251,7 +280,6 @@ export default function App() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center gap-5 w-full sm:w-auto">
-                  {/* TOMBOL MULAI SCANNING DENGAN FUNGSI ANCHOR */}
                   <button
                     onClick={scrollToScanner}
                     className="w-full sm:w-auto bg-primary hover:bg-blue-700 text-white px-8 py-4 rounded-2xl flex items-center justify-center gap-3 text-lg font-bold transition-all shadow-xl shadow-primary/30 active:scale-95 group">

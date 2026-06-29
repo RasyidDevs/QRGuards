@@ -57,7 +57,10 @@ export default function ScannerCard({
 
         <div className="relative overflow-hidden rounded-[1rem] border-4 border-slate-50 bg-slate-100 shadow-inner">
           {scannerActive ? (
-            <div id="qr-reader" className="min-h-[380px] w-full" />
+            <div
+              id="qr-reader"
+              className="min-h-[380px] overflow-hidden rounded-xl"
+            />
           ) : (
             <div className="flex min-h-[380px] flex-col items-center justify-center bg-white px-8 animate-in zoom-in-95 duration-500">
               <div className="relative mb-6">
