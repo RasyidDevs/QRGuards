@@ -189,10 +189,7 @@ export default function App() {
 
             handleScannedQr(decodedText);
           },
-          (errorMessage) => {
-            // boleh dikosongkan
-            // console.log(errorMessage);
-          },
+          () => {},
         );
       } catch (err) {
         console.error(err);
