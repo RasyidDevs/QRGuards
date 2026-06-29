@@ -20,13 +20,10 @@ export default function UploadButton({
       {loading ? (
         <Loader2 size={24} className="animate-spin" />
       ) : (
-        <Upload
-          size={24}
-          className="transition-transform group-hover:-translate-y-1"
-        />
+        <Upload className="h-5 w-5 sm:h-6 sm:w-6 transition-transform group-hover:-translate-y-1 flex-shrink-0" />
       )}
 
-      <span className="text-sm  tracking-widest">
+      <span className="whitespace-nowrap text-sm  tracking-widest">
         {loading ? "Analyzing..." : "Upload QR"}
       </span>
 

@@ -110,7 +110,6 @@ export default function App() {
     setError("");
     setScannedQrUrl(decoded);
     setScannerActive(false);
-    hasScannedRef.current = false;
 
     const resolvedUrl = await resolveFinalUrl(decoded);
 
@@ -132,7 +131,17 @@ export default function App() {
 
     try {
       if (scannerRef.current) {
-        scannerRef.current.clear();
+        try {
+          if (
+            scannerRef.current.getState() === Html5QrcodeScannerState.SCANNING
+          ) {
+            await scannerRef.current.stop();
+          }
+
+          scannerRef.current.clear();
+        } catch (err) {
+          console.error(err);
+        }
       }
       setScannerActive(false);
 
@@ -141,10 +150,10 @@ export default function App() {
       const decoded = await html5QrCode.scanFile(file, true);
 
       await handleScannedQr(decoded);
-    } catch {
-      setError(
-        "Gambar tidak valid: Sistem tidak dapat menemukan QR Code. Pastikan gambar jelas dan tidak terpotong.",
-      );
+    } catch (err) {
+      console.error(err);
+
+      setError(err instanceof Error ? err.message : "Tidak dapat membaca QR");
 
       setScannerActive(true);
       setLoading(false);
@@ -154,14 +163,33 @@ export default function App() {
     }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
+    try {
+      if (scannerRef.current) {
+        if (
+          scannerRef.current.getState() === Html5QrcodeScannerState.SCANNING
+        ) {
+          await scannerRef.current.stop();
+        }
+
+        scannerRef.current.clear();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+
+    const reader = document.getElementById("qr-reader");
+    if (reader) {
+      reader.innerHTML = "";
+    }
+
     setScannedQrUrl("");
     setFinalUrl("");
     setManualUrl("");
     setResult(null);
     setError("");
-    setScannerActive(true);
     hasScannedRef.current = false;
+    setScannerActive(true);
   };
 
   useEffect(() => {
@@ -205,10 +233,13 @@ export default function App() {
       isMounted = false;
 
       if (scanner.getState() === Html5QrcodeScannerState.SCANNING) {
-        scanner.stop().catch(() => {});
+        scanner
+          .stop()
+          .then(() => scanner.clear())
+          .catch(() => {});
       }
     };
-  }, []);
+  }, [scannerActive]);
 
   const isShowResult =
     result || loading || (error && (scannedQrUrl || manualUrl));
